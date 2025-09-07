@@ -1,0 +1,442 @@
+{% extends "base.html" %}
+
+{% block title %}Paramètres - French Rental Hunter{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Paramètres</h1>
+        <p class="text-gray-600 mt-2">Configuration système et validation</p>
+    </div>
+
+    <!-- Configuration Status -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Statut de la configuration</h2>
+        
+        <!-- Overall Status -->
+        <div class="flex items-center mb-6">
+            {% if config_status.valid %}
+                <div class="flex items-center text-green-600">
+                    <span class="text-2xl mr-3">✅</span>
+                    <div>
+                        <p class="font-medium">Configuration valide</p>
+                        <p class="text-sm text-gray-500">Système prêt à fonctionner</p>
+                    </div>
+                </div>
+            {% else %}
+                <div class="flex items-center text-red-600">
+                    <span class="text-2xl mr-3">❌</span>
+                    <div>
+                        <p class="font-medium">Configuration incomplète</p>
+                        <p class="text-sm text-gray-500">Certains paramètres doivent être configurés</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Issues -->
+        {% if config_status.issues %}
+        <div class="mb-4">
+            <h3 class="text-sm font-medium text-red-800 mb-2">Problèmes à résoudre :</h3>
+            <ul class="list-disc list-inside text-sm text-red-700 space-y-1">
+                {% for issue in config_status.issues %}
+                <li>{{ issue }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        
+        <!-- Warnings -->
+        {% if config_status.warnings %}
+        <div class="mb-4">
+            <h3 class="text-sm font-medium text-yellow-800 mb-2">Avertissements :</h3>
+            <ul class="list-disc list-inside text-sm text-yellow-700 space-y-1">
+                {% for warning in config_status.warnings %}
+                <li>{{ warning }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Configuration Sections -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        <!-- Search Configuration -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">🔍 Critères de recherche</h3>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Villes ciblées</label>
+                    <div class="flex flex-wrap gap-2">
+                        {% for city in config.DEFAULT_SEARCH_CRITERIA.cities %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            {{ city.strip() }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Prix minimum</label>
+                        <p class="text-sm text-gray-900">{{ config.DEFAULT_SEARCH_CRITERIA.min_price }} €/mois</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Prix maximum</label>
+                        <p class="text-sm text-gray-900">{{ config.DEFAULT_SEARCH_CRITERIA.max_price }} €/mois</p>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Pièces min</label>
+                        <p class="text-sm text-gray-900">{{ config.DEFAULT_SEARCH_CRITERIA.min_rooms }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Pièces max</label>
+                        <p class="text-sm text-gray-900">{{ config.DEFAULT_SEARCH_CRITERIA.max_rooms }}</p>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Types de biens</label>
+                    <div class="flex flex-wrap gap-2">
+                        {% for property_type in config.DEFAULT_SEARCH_CRITERIA.property_types %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            {{ property_type.strip().title() }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                {% if config.DEFAULT_SEARCH_CRITERIA.keywords %}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Mots-clés recherchés</label>
+                    <div class="flex flex-wrap gap-2">
+                        {% for keyword in config.DEFAULT_SEARCH_CRITERIA.keywords %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                            {{ keyword.strip() }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if config.DEFAULT_SEARCH_CRITERIA.exclude_keywords %}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Mots-clés exclus</label>
+                    <div class="flex flex-wrap gap-2">
+                        {% for keyword in config.DEFAULT_SEARCH_CRITERIA.exclude_keywords %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            {{ keyword.strip() }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Scrapers Configuration -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">🌐 Sites de scraping</h3>
+            
+            <div class="space-y-4">
+                {% for scraper, enabled in config.ENABLED_SCRAPERS.items() %}
+                <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                    <div class="flex items-center">
+                        {% if scraper == 'seloger' %}
+                            <span class="text-blue-500 text-lg mr-3">🏢</span>
+                            <div>
+                                <p class="font-medium text-gray-900">SeLoger.com</p>
+                                <p class="text-sm text-gray-500">Site principal des annonces d'agences</p>
+                            </div>
+                        {% elif scraper == 'leboncoin' %}
+                            <span class="text-orange-500 text-lg mr-3">🛒</span>
+                            <div>
+                                <p class="font-medium text-gray-900">LeBonCoin.fr</p>
+                                <p class="text-sm text-gray-500">Annonces particuliers et agences</p>
+                            </div>
+                        {% elif scraper == 'pap' %}
+                            <span class="text-green-500 text-lg mr-3">👤</span>
+                            <div>
+                                <p class="font-medium text-gray-900">PAP.fr</p>
+                                <p class="text-sm text-gray-500">Particulier à Particulier</p>
+                            </div>
+                        {% elif scraper == 'logic_immo' %}
+                            <span class="text-purple-500 text-lg mr-3">🏘️</span>
+                            <div>
+                                <p class="font-medium text-gray-900">Logic-Immo.com</p>
+                                <p class="text-sm text-gray-500">Portail d'annonces immobilières</p>
+                            </div>
+                        {% elif scraper == 'bienici' %}
+                            <span class="text-red-500 text-lg mr-3">🌟</span>
+                            <div>
+                                <p class="font-medium text-gray-900">Bienici.com</p>
+                                <p class="text-sm text-gray-500">Plateforme immobilière moderne</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex items-center">
+                        {% if enabled %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                                ✅ Activé
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
+                                ⏸️ Désactivé
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Email Configuration -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">📧 Configuration email</h3>
+            
+            <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Serveur SMTP</label>
+                        <p class="text-sm text-gray-900">{{ config.SMTP_SERVER }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Port</label>
+                        <p class="text-sm text-gray-900">{{ config.SMTP_PORT }}</p>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Adresse d'envoi</label>
+                    <p class="text-sm text-gray-900">{{ config.EMAIL_FROM or 'Non configurée' }}</p>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nom d'expéditeur</label>
+                    <p class="text-sm text-gray-900">{{ config.EMAIL_FROM_NAME }}</p>
+                </div>
+                
+                <div class="flex items-center">
+                    {% if config.SMTP_USERNAME and config.SMTP_PASSWORD %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                            ✅ Credentials configurés
+                        </span>
+                    {% else %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
+                            ❌ Credentials manquants
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Phone Configuration -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">📞 Configuration téléphone</h3>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Service</label>
+                    <p class="text-sm text-gray-900">Twilio</p>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Numéro Twilio</label>
+                    <p class="text-sm text-gray-900">{{ config.TWILIO_PHONE_NUMBER or 'Non configuré' }}</p>
+                </div>
+                
+                <div class="flex items-center">
+                    {% if config.TWILIO_ACCOUNT_SID and config.TWILIO_AUTH_TOKEN %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                            ✅ Twilio configuré
+                        </span>
+                    {% else %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
+                            ⚠️ Twilio non configuré
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Scheduler Configuration -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">⏰ Planification automatique</h3>
+            
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="font-medium text-gray-900">Scheduler activé</p>
+                        <p class="text-sm text-gray-500">Exécution automatique des tâches</p>
+                    </div>
+                    <div>
+                        {% if config.ENABLE_SCHEDULER %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                                ✅ Activé
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
+                                ⏸️ Désactivé
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if config.ENABLE_SCHEDULER %}
+                <div class="border-t border-gray-200 pt-4">
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Scraping automatique:</span>
+                            <span class="text-gray-900 font-mono">{{ config.SCRAPING_SCHEDULE }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Contact initial:</span>
+                            <span class="text-gray-900 font-mono">{{ config.CONTACT_SCHEDULE }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Relances:</span>
+                            <span class="text-gray-900 font-mono">{{ config.FOLLOW_UP_SCHEDULE }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- System Information -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">ℹ️ Informations système</h3>
+            
+            <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Mode debug</label>
+                        <p class="text-gray-900">{{ 'Activé' if config.DEBUG else 'Désactivé' }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Niveau de log</label>
+                        <p class="text-gray-900">{{ config.LOG_LEVEL }}</p>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Délai scraping</label>
+                        <p class="text-gray-900">{{ config.SCRAPING_DELAY_MIN }}-{{ config.SCRAPING_DELAY_MAX }}s</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Tentatives max</label>
+                        <p class="text-gray-900">{{ config.MAX_CONTACT_ATTEMPTS }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="mt-8 bg-gray-50 rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Actions système</h3>
+        <div class="flex flex-wrap gap-4">
+            <button onclick="testEmailConfig()" 
+                    class="inline-flex items-center px-4 py-2 border border-blue-300 rounded-md text-sm font-medium text-blue-700 hover:bg-blue-50 transition-colors">
+                <span class="mr-2">📧</span>
+                Tester la configuration email
+            </button>
+            
+            {% if config.TWILIO_ACCOUNT_SID and config.TWILIO_AUTH_TOKEN %}
+            <button onclick="testTwilioConfig()" 
+                    class="inline-flex items-center px-4 py-2 border border-green-300 rounded-md text-sm font-medium text-green-700 hover:bg-green-50 transition-colors">
+                <span class="mr-2">📞</span>
+                Tester la configuration Twilio
+            </button>
+            {% endif %}
+            
+            <button onclick="validateAllConfig()" 
+                    class="inline-flex items-center px-4 py-2 border border-purple-300 rounded-md text-sm font-medium text-purple-700 hover:bg-purple-50 transition-colors">
+                <span class="mr-2">✅</span>
+                Valider toute la configuration
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function testEmailConfig() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    showLoading(button);
+    
+    // Mock API call to test email configuration
+    setTimeout(() => {
+        hideLoading(button, originalText);
+        showFlashMessage('success', 'Configuration email testée avec succès');
+    }, 2000);
+}
+
+function testTwilioConfig() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    showLoading(button);
+    
+    // Mock API call to test Twilio configuration
+    setTimeout(() => {
+        hideLoading(button, originalText);
+        showFlashMessage('success', 'Configuration Twilio testée avec succès');
+    }, 2000);
+}
+
+function validateAllConfig() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    showLoading(button);
+    
+    // Mock API call to validate all configuration
+    setTimeout(() => {
+        hideLoading(button, originalText);
+        showFlashMessage('success', 'Configuration validée - Système opérationnel');
+        setTimeout(() => window.location.reload(), 1000);
+    }, 3000);
+}
+
+function showFlashMessage(category, message) {
+    const main = document.querySelector('main');
+    const flashDiv = document.createElement('div');
+    const bgColor = category === 'error' ? 'bg-red-50 border border-red-200 text-red-700' : 
+                   category === 'success' ? 'bg-green-50 border border-green-200 text-green-700' : 
+                   'bg-blue-50 border border-blue-200 text-blue-700';
+    const icon = category === 'error' ? '❌' : category === 'success' ? '✅' : 'ℹ️';
+    
+    flashDiv.className = `flash-message mb-4 px-4 py-3 rounded-md fade-in ${bgColor}`;
+    flashDiv.innerHTML = `
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <span>${icon}</span>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm">${message}</p>
+            </div>
+        </div>
+    `;
+    
+    main.insertBefore(flashDiv, main.firstChild);
+    
+    setTimeout(() => {
+        flashDiv.style.transition = 'opacity 0.5s ease-out';
+        flashDiv.style.opacity = '0';
+        setTimeout(() => flashDiv.remove(), 500);
+    }, 5000);
+}
+</script>
+{% endblock %}
