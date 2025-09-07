@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}French Real Estate Rental Hunter{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom CSS -->
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        /* Animation classes */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .status-new { @apply bg-blue-100 text-blue-800 border-blue-200; }
+        .status-contacted { @apply bg-yellow-100 text-yellow-800 border-yellow-200; }
+        .status-responded { @apply bg-green-100 text-green-800 border-green-200; }
+        .status-visited { @apply bg-purple-100 text-purple-800 border-purple-200; }
+        .status-rejected { @apply bg-red-100 text-red-800 border-red-200; }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans antialiased">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <h1 class="text-xl font-bold text-gray-900">🏠 Rental Hunter</h1>
+                    </div>
+                    <div class="hidden md:ml-6 md:flex md:space-x-8">
+                        <a href="{{ url_for('dashboard') }}" 
+                           class="{% if request.endpoint == 'dashboard' %}border-blue-500 text-blue-600{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} border-b-2 px-1 pt-1 pb-4 text-sm font-medium transition-colors">
+                            Tableau de bord
+                        </a>
+                        <a href="{{ url_for('properties') }}" 
+                           class="{% if request.endpoint == 'properties' or request.endpoint == 'property_detail' %}border-blue-500 text-blue-600{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} border-b-2 px-1 pt-1 pb-4 text-sm font-medium transition-colors">
+                            Biens
+                        </a>
+                        <a href="{{ url_for('contacts') }}" 
+                           class="{% if request.endpoint == 'contacts' %}border-blue-500 text-blue-600{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} border-b-2 px-1 pt-1 pb-4 text-sm font-medium transition-colors">
+                            Contacts
+                        </a>
+                        <a href="{{ url_for('scraping') }}" 
+                           class="{% if request.endpoint == 'scraping' %}border-blue-500 text-blue-600{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} border-b-2 px-1 pt-1 pb-4 text-sm font-medium transition-colors">
+                            Scraping
+                        </a>
+                        <a href="{{ url_for('settings') }}" 
+                           class="{% if request.endpoint == 'settings' %}border-blue-500 text-blue-600{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} border-b-2 px-1 pt-1 pb-4 text-sm font-medium transition-colors">
+                            Paramètres
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="flex items-center">
+                    <div class="text-sm text-gray-500">
+                        <span class="inline-flex items-center">
+                            <span class="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
+                            En ligne
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+                {% for category, message in messages %}
+                    <div class="flash-message {% if category == 'error' %}bg-red-50 border border-red-200 text-red-700{% elif category == 'success' %}bg-green-50 border border-green-200 text-green-700{% else %}bg-blue-50 border border-blue-200 text-blue-700{% endif %} px-4 py-3 rounded-md mb-4 fade-in">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                {% if category == 'error' %}
+                                    <span class="text-red-500">❌</span>
+                                {% elif category == 'success' %}
+                                    <span class="text-green-500">✅</span>
+                                {% else %}
+                                    <span class="text-blue-500">ℹ️</span>
+                                {% endif %}
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm">{{ message }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-12">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center">
+                <div class="text-gray-500 text-sm">
+                    © 2024 French Real Estate Rental Hunter - Automatisation de recherche immobilière
+                </div>
+                <div class="text-gray-500 text-sm">
+                    Version 1.0 - Python {{ python_version() if python_version }}
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // Auto-hide flash messages after 5 seconds
+        setTimeout(function() {
+            const flashMessages = document.querySelectorAll('.flash-message');
+            flashMessages.forEach(function(message) {
+                message.style.transition = 'opacity 0.5s ease-out';
+                message.style.opacity = '0';
+                setTimeout(function() {
+                    message.remove();
+                }, 500);
+            });
+        }, 5000);
+
+        // Generic AJAX function
+        function makeAjaxRequest(url, method, data) {
+            return fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: data ? JSON.stringify(data) : null
+            });
+        }
+
+        // Show loading spinner
+        function showLoading(element) {
+            element.disabled = true;
+            element.innerHTML = '<span class="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>Chargement...';
+        }
+
+        // Hide loading spinner
+        function hideLoading(element, originalText) {
+            element.disabled = false;
+            element.innerHTML = originalText;
+        }
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>
