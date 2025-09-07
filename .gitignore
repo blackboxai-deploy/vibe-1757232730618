@@ -1,0 +1,105 @@
+# French Real Estate Rental Hunter - .gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv/
+.ENV/
+
+# Environment variables (IMPORTANT: Keep credentials safe)
+.env
+.env.local
+.env.production
+
+# Database
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Flask
+instance/
+.webassets-cache
+
+# Selenium
+*.log
+selenium-debug.log
+
+# Twilio
+.twilio-cli
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Screenshots (if any)
+screenshots/
+
+# Chrome/Selenium drivers
+chromedriver*
+geckodriver*
+
+# Node.js (if adding frontend build tools later)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Backup files
+*.bak
+*.backup
+
+# Archive files
+*.zip
+*.tar.gz
+*.rar
