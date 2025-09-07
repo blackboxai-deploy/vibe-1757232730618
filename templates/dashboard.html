@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block title %}Tableau de Bord - French Rental Hunter{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Tableau de Bord</h1>
+        <p class="text-gray-600 mt-2">Vue d'ensemble de votre recherche immobilière automatisée</p>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <span class="text-blue-600 text-lg">🏠</span>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Total Biens</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ stats.total_properties or 0 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                        <span class="text-green-600 text-lg">🆕</span>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Nouveaux</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ stats.new_properties or 0 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                        <span class="text-yellow-600 text-lg">📧</span>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Contactés</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ stats.contacted_properties or 0 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <span class="text-purple-600 text-lg">✅</span>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Réponses</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ stats.responded_properties or 0 }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Recent Properties -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900">Biens Récents</h2>
+                <p class="text-sm text-gray-600">Dernières propriétés trouvées</p>
+            </div>
+            <div class="p-6">
+                {% if recent_properties %}
+                    <div class="space-y-4">
+                        {% for property in recent_properties[:5] %}
+                        <div class="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                            <div class="flex-shrink-0">
+                                <img src="https://placehold.co/60x60?text=Apartment+thumbnail+placeholder" 
+                                     alt="Property thumbnail" 
+                                     class="w-12 h-12 rounded-lg object-cover">
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-start justify-between">
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-900 truncate">
+                                            {% if property.title and property.title|length > 60 %}
+                                                {{ property.title[:60] }}...
+                                            {% else %}
+                                                {{ property.title or 'Titre non disponible' }}
+                                            {% endif %}
+                                        </p>
+                                        <p class="text-sm text-gray-500">{{ property.city }} • {{ property.price|price }}</p>
+                                    </div>
+                                    <span class="status-{{ property.status.value if property.status else 'new' }} inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ml-2">
+                                        {{ property.status.value.replace('_', ' ').title() if property.status else 'New' }}
+                                    </span>
+                                </div>
+                                <p class="text-xs text-gray-400 mt-1">
+                                    {{ property.source_site|title }} • {{ property.first_seen|datetime }}
+                                </p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <a href="{{ url_for('properties') }}" class="text-blue-600 hover:text-blue-500 text-sm font-medium">
+                            Voir tous les biens →
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-8">
+                        <div class="text-4xl mb-4">🔍</div>
+                        <p class="text-gray-500">Aucun bien trouvé pour le moment</p>
+                        <p class="text-sm text-gray-400 mt-2">Le scraping automatique commencera bientôt</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Scraping Activity -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-900">Activité Scraping</h2>
+                        <p class="text-sm text-gray-600">Logs de recherche récents</p>
+                    </div>
+                    <button onclick="triggerManualScraping()" 
+                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                        <span class="mr-2">🚀</span>
+                        Lancer scraping
+                    </button>
+                </div>
+            </div>
+            <div class="p-6">
+                {% if recent_logs %}
+                    <div class="space-y-4">
+                        {% for log in recent_logs %}
+                        <div class="flex items-center space-x-3 p-3 rounded-lg bg-gray-50">
+                            <div class="flex-shrink-0">
+                                <span class="w-2 h-2 rounded-full {% if log.status == 'completed' %}bg-green-500{% elif log.status == 'failed' %}bg-red-500{% else %}bg-yellow-500{% endif %}"></span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between">
+                                    <p class="text-sm font-medium text-gray-900">
+                                        {{ log.site|title }}
+                                    </p>
+                                    <span class="text-xs text-gray-500">
+                                        {{ log.started_at|datetime }}
+                                    </span>
+                                </div>
+                                <div class="flex items-center space-x-4 text-xs text-gray-500 mt-1">
+                                    <span>{{ log.properties_found or 0 }} trouvés</span>
+                                    <span>{{ log.properties_new or 0 }} nouveaux</span>
+                                    {% if log.status == 'failed' %}
+                                        <span class="text-red-600">Échec</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <a href="{{ url_for('scraping') }}" class="text-blue-600 hover:text-blue-500 text-sm font-medium">
+                            Voir tous les logs →
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-8">
+                        <div class="text-4xl mb-4">📊</div>
+                        <p class="text-gray-500">Aucune activité de scraping</p>
+                        <button onclick="triggerManualScraping()" 
+                                class="mt-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-600 bg-blue-100 hover:bg-blue-200 transition-colors">
+                            Démarrer le premier scraping
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="mt-8 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Actions Rapides</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <button class="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                <span class="mr-2">📧</span>
+                Envoyer emails
+            </button>
+            <button class="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                <span class="mr-2">📞</span>
+                Appels automatiques
+            </button>
+            <button class="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                <span class="mr-2">📋</span>
+                Exporter données
+            </button>
+            <a href="{{ url_for('settings') }}" class="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                <span class="mr-2">⚙️</span>
+                Configuration
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function triggerManualScraping() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    // Show loading state
+    showLoading(button);
+    
+    // Make API request
+    makeAjaxRequest('/api/scrape', 'POST', {
+        city: 'Paris',
+        site: 'seloger'
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading(button, originalText);
+        
+        if (data.success) {
+            // Show success message
+            showFlashMessage('success', data.message);
+            // Refresh page after 2 seconds
+            setTimeout(() => window.location.reload(), 2000);
+        } else {
+            showFlashMessage('error', data.message);
+        }
+    })
+    .catch(error => {
+        hideLoading(button, originalText);
+        showFlashMessage('error', 'Erreur lors du lancement du scraping');
+        console.error('Scraping error:', error);
+    });
+}
+
+function showFlashMessage(category, message) {
+    const container = document.querySelector('main');
+    const flashDiv = document.createElement('div');
+    flashDiv.className = `flash-message mb-4 px-4 py-3 rounded-md fade-in ${category === 'error' ? 'bg-red-50 border border-red-200 text-red-700' : 'bg-green-50 border border-green-200 text-green-700'}`;
+    
+    flashDiv.innerHTML = `
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <span class="${category === 'error' ? 'text-red-500' : 'text-green-500'}">${category === 'error' ? '❌' : '✅'}</span>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm">${message}</p>
+            </div>
+        </div>
+    `;
+    
+    container.insertBefore(flashDiv, container.firstChild);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        flashDiv.style.transition = 'opacity 0.5s ease-out';
+        flashDiv.style.opacity = '0';
+        setTimeout(() => flashDiv.remove(), 500);
+    }, 5000);
+}
+</script>
+{% endblock %}
