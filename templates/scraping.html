@@ -1,0 +1,371 @@
+{% extends "base.html" %}
+
+{% block title %}Scraping - French Rental Hunter{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Scraping Management</h1>
+                <p class="text-gray-600 mt-2">Surveiller et contrôler l'activité de scraping</p>
+            </div>
+            <button onclick="triggerManualScraping()" 
+                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors">
+                <span class="mr-2">🚀</span>
+                Lancer scraping manuel
+            </button>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <span class="text-blue-600 text-lg">📊</span>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Scraping aujourd'hui</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ logs|selectattr('status', 'equalto', 'completed')|list|length }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                        <span class="text-green-600 text-lg">✅</span>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Réussis</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ logs|selectattr('status', 'equalto', 'completed')|list|length }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+                        <span class="text-red-600 text-lg">❌</span>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Échecs</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ logs|selectattr('status', 'equalto', 'failed')|list|length }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <span class="text-purple-600 text-lg">🏠</span>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Biens trouvés</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ logs|sum(attribute='properties_found') or 0 }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manual Scraping Controls -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Contrôles manuels</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div>
+                <label for="scraping-site" class="block text-sm font-medium text-gray-700 mb-2">Site à scraper</label>
+                <select id="scraping-site" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    <option value="seloger">SeLoger.com</option>
+                    <option value="leboncoin">LeBonCoin.fr</option>
+                    <option value="pap">PAP.fr</option>
+                    <option value="logic_immo">Logic-Immo.com</option>
+                    <option value="bienici">Bienici.com</option>
+                </select>
+            </div>
+            
+            <div>
+                <label for="scraping-city" class="block text-sm font-medium text-gray-700 mb-2">Ville</label>
+                <select id="scraping-city" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    <option value="Paris">Paris</option>
+                    <option value="Lyon">Lyon</option>
+                    <option value="Marseille">Marseille</option>
+                    <option value="Toulouse">Toulouse</option>
+                    <option value="Nice">Nice</option>
+                    <option value="Bordeaux">Bordeaux</option>
+                </select>
+            </div>
+            
+            <div class="flex items-end">
+                <button onclick="triggerCustomScraping()" 
+                        class="w-full px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+                    <span class="mr-2">🎯</span>
+                    Lancer scraping ciblé
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scraping Logs -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-900">Logs de scraping récents</h2>
+        </div>
+
+        {% if logs %}
+            <div class="divide-y divide-gray-200">
+                {% for log in logs %}
+                <div class="p-6 hover:bg-gray-50 transition-colors">
+                    <div class="flex items-start justify-between">
+                        <!-- Log Info -->
+                        <div class="flex-1">
+                            <div class="flex items-start space-x-4">
+                                <!-- Status Icon -->
+                                <div class="flex-shrink-0 mt-1">
+                                    {% if log.status == 'completed' %}
+                                        <span class="w-3 h-3 bg-green-500 rounded-full inline-block"></span>
+                                    {% elif log.status == 'failed' %}
+                                        <span class="w-3 h-3 bg-red-500 rounded-full inline-block"></span>
+                                    {% elif log.status == 'running' %}
+                                        <span class="w-3 h-3 bg-yellow-500 rounded-full inline-block animate-pulse"></span>
+                                    {% else %}
+                                        <span class="w-3 h-3 bg-gray-400 rounded-full inline-block"></span>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Log Details -->
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-start justify-between">
+                                        <div>
+                                            <h3 class="text-lg font-medium text-gray-900">
+                                                {{ log.site|title }} Scraping
+                                                {% if log.status == 'running' %}
+                                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 ml-2">
+                                                        En cours...
+                                                    </span>
+                                                {% endif %}
+                                            </h3>
+                                            
+                                            <!-- Timing -->
+                                            <p class="text-sm text-gray-500 mt-1">
+                                                Démarré: {{ log.started_at|datetime }}
+                                                {% if log.completed_at %}
+                                                    • Terminé: {{ log.completed_at|datetime }}
+                                                {% endif %}
+                                            </p>
+                                            
+                                            <!-- Results -->
+                                            {% if log.status == 'completed' %}
+                                            <div class="flex items-center space-x-6 mt-3 text-sm">
+                                                <span class="flex items-center text-blue-600">
+                                                    <span class="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
+                                                    {{ log.properties_found or 0 }} trouvés
+                                                </span>
+                                                <span class="flex items-center text-green-600">
+                                                    <span class="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
+                                                    {{ log.properties_new or 0 }} nouveaux
+                                                </span>
+                                                <span class="flex items-center text-orange-600">
+                                                    <span class="w-2 h-2 bg-orange-400 rounded-full mr-2"></span>
+                                                    {{ log.properties_updated or 0 }} mis à jour
+                                                </span>
+                                                <span class="flex items-center text-gray-600">
+                                                    <span class="w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
+                                                    {{ log.properties_duplicates or 0 }} doublons
+                                                </span>
+                                            </div>
+                                            {% endif %}
+                                            
+                                            <!-- Error Message -->
+                                            {% if log.status == 'failed' and log.error_message %}
+                                            <div class="mt-3 p-3 bg-red-50 border border-red-200 rounded-md">
+                                                <p class="text-sm text-red-700">
+                                                    <span class="font-medium">Erreur:</span> {{ log.error_message }}
+                                                </p>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <!-- Actions -->
+                                        <div class="ml-4 flex items-center space-x-2">
+                                            {% if log.status == 'running' %}
+                                            <button onclick="stopScraping({{ log.id }})" 
+                                                    class="inline-flex items-center px-3 py-1 border border-red-300 rounded text-xs font-medium text-red-700 hover:bg-red-50 transition-colors">
+                                                <span class="mr-1">⏹️</span>
+                                                Arrêter
+                                            </button>
+                                            {% else %}
+                                            <button onclick="rerunScraping('{{ log.site }}')" 
+                                                    class="inline-flex items-center px-3 py-1 border border-blue-300 rounded text-xs font-medium text-blue-700 hover:bg-blue-50 transition-colors">
+                                                <span class="mr-1">🔄</span>
+                                                Relancer
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <!-- Empty State -->
+            <div class="text-center py-12">
+                <div class="text-6xl mb-4">📊</div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Aucun log de scraping</h3>
+                <p class="text-gray-500 mb-6">Lancez votre premier scraping pour voir l'activité ici</p>
+                <button onclick="triggerManualScraping()" 
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors">
+                    <span class="mr-2">🚀</span>
+                    Premier scraping
+                </button>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function triggerManualScraping() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    showLoading(button);
+    
+    makeAjaxRequest('/api/scrape', 'POST', {
+        city: 'Paris',
+        site: 'seloger'
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading(button, originalText);
+        
+        if (data.success) {
+            showFlashMessage('success', data.message);
+            setTimeout(() => window.location.reload(), 3000);
+        } else {
+            showFlashMessage('error', data.message);
+        }
+    })
+    .catch(error => {
+        hideLoading(button, originalText);
+        showFlashMessage('error', 'Erreur lors du lancement du scraping');
+        console.error('Scraping error:', error);
+    });
+}
+
+function triggerCustomScraping() {
+    const site = document.getElementById('scraping-site').value;
+    const city = document.getElementById('scraping-city').value;
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    showLoading(button);
+    
+    makeAjaxRequest('/api/scrape', 'POST', {
+        city: city,
+        site: site
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading(button, originalText);
+        
+        if (data.success) {
+            showFlashMessage('success', `Scraping lancé pour ${city} sur ${site}`);
+            setTimeout(() => window.location.reload(), 3000);
+        } else {
+            showFlashMessage('error', data.message);
+        }
+    })
+    .catch(error => {
+        hideLoading(button, originalText);
+        showFlashMessage('error', 'Erreur lors du lancement du scraping ciblé');
+        console.error('Custom scraping error:', error);
+    });
+}
+
+function rerunScraping(site) {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    showLoading(button);
+    
+    makeAjaxRequest('/api/scrape', 'POST', {
+        city: 'Paris',
+        site: site
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading(button, originalText);
+        
+        if (data.success) {
+            showFlashMessage('success', `Scraping relancé pour ${site}`);
+            setTimeout(() => window.location.reload(), 2000);
+        } else {
+            showFlashMessage('error', data.message);
+        }
+    })
+    .catch(error => {
+        hideLoading(button, originalText);
+        showFlashMessage('error', 'Erreur lors de la relance du scraping');
+        console.error('Rerun scraping error:', error);
+    });
+}
+
+function stopScraping(logId) {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    showLoading(button);
+    
+    // Mock API call to stop scraping
+    setTimeout(() => {
+        hideLoading(button, originalText);
+        showFlashMessage('info', 'Demande d\'arrêt envoyée');
+        setTimeout(() => window.location.reload(), 2000);
+    }, 1000);
+}
+
+function showFlashMessage(category, message) {
+    const main = document.querySelector('main');
+    const flashDiv = document.createElement('div');
+    const bgColor = category === 'error' ? 'bg-red-50 border border-red-200 text-red-700' : 
+                   category === 'success' ? 'bg-green-50 border border-green-200 text-green-700' : 
+                   'bg-blue-50 border border-blue-200 text-blue-700';
+    const icon = category === 'error' ? '❌' : category === 'success' ? '✅' : 'ℹ️';
+    
+    flashDiv.className = `flash-message mb-4 px-4 py-3 rounded-md fade-in ${bgColor}`;
+    flashDiv.innerHTML = `
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <span>${icon}</span>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm">${message}</p>
+            </div>
+        </div>
+    `;
+    
+    main.insertBefore(flashDiv, main.firstChild);
+    
+    setTimeout(() => {
+        flashDiv.style.transition = 'opacity 0.5s ease-out';
+        flashDiv.style.opacity = '0';
+        setTimeout(() => flashDiv.remove(), 500);
+    }, 5000);
+}
+</script>
+{% endblock %}
