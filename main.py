@@ -6,6 +6,8 @@ This application automates the process of finding French rental properties,
 contacting agencies, and tracking communications.
 """
 
+import utils.transport
+import utils.session
 import os
 import sys
 import logging

@@ -31,9 +31,6 @@ ENV/
 .ENV/
 
 # Environment variables (IMPORTANT: Keep credentials safe)
-.env
-.env.local
-.env.production
 
 # Database
 data/
@@ -46,7 +43,6 @@ logs/
 *.log
 
 # IDE
-.vscode/
 .idea/
 *.swp
 *.swo
@@ -103,3 +99,4 @@ yarn-error.log*
 *.zip
 *.tar.gz
 *.rar
+config.bat
