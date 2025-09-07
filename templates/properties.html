@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+
+{% block title %}Biens Immobiliers - French Rental Hunter{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Biens Immobiliers</h1>
+                <p class="text-gray-600 mt-2">Gérer et suivre vos annonces immobilières</p>
+            </div>
+            <div>
+                <button onclick="triggerManualScraping()" 
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors">
+                    <span class="mr-2">🔍</span>
+                    Nouveau scraping
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+        <form method="GET" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label for="city" class="block text-sm font-medium text-gray-700 mb-2">Ville</label>
+                    <select id="city" name="city" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Toutes les villes</option>
+                        {% for city in cities %}
+                        <option value="{{ city }}" {% if current_filters.city == city %}selected{% endif %}>{{ city }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="status" class="block text-sm font-medium text-gray-700 mb-2">Statut</label>
+                    <select id="status" name="status" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Tous les statuts</option>
+                        <option value="new" {% if current_filters.status == 'new' %}selected{% endif %}>Nouveau</option>
+                        <option value="contacted" {% if current_filters.status == 'contacted' %}selected{% endif %}>Contacté</option>
+                        <option value="responded" {% if current_filters.status == 'responded' %}selected{% endif %}>Répondu</option>
+                        <option value="visit_scheduled" {% if current_filters.status == 'visit_scheduled' %}selected{% endif %}>Visite programmée</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="min_price" class="block text-sm font-medium text-gray-700 mb-2">Prix min (€)</label>
+                    <input type="number" id="min_price" name="min_price" value="{{ current_filters.min_price or '' }}" 
+                           class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                
+                <div>
+                    <label for="max_price" class="block text-sm font-medium text-gray-700 mb-2">Prix max (€)</label>
+                    <input type="number" id="max_price" name="max_price" value="{{ current_filters.max_price or '' }}" 
+                           class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+            </div>
+            
+            <div class="flex justify-end space-x-3">
+                <a href="{{ url_for('properties') }}" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                    Réinitialiser
+                </a>
+                <button type="submit" class="px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+                    Filtrer
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Properties List -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-900">
+                {{ properties|length }} bien(s) trouvé(s)
+            </h2>
+        </div>
+
+        {% if properties %}
+            <div class="divide-y divide-gray-200">
+                {% for property in properties %}
+                <div class="p-6 hover:bg-gray-50 transition-colors">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-start space-x-4">
+                                <!-- Property Image Placeholder -->
+                                <div class="flex-shrink-0">
+                                    <img src="https://placehold.co/120x90?text=French+apartment+rental+property+thumbnail" 
+                                         alt="Property thumbnail" 
+                                         class="w-20 h-15 rounded-lg object-cover border border-gray-200">
+                                </div>
+                                
+                                <!-- Property Details -->
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-start justify-between">
+                                        <div>
+                                            <h3 class="text-lg font-medium text-gray-900 hover:text-blue-600 cursor-pointer">
+                                                <a href="{{ url_for('property_detail', property_id=property.id) }}">
+                                                    {{ property.title }}
+                                                </a>
+                                            </h3>
+                                            <p class="text-sm text-gray-500 mt-1">
+                                                {{ property.city }}
+                                                {% if property.rooms %} • {{ property.rooms }} pièce(s){% endif %}
+                                                {% if property.area %} • {{ property.area }} m²{% endif %}
+                                            </p>
+                                        </div>
+                                        
+                                        <!-- Price and Status -->
+                                        <div class="text-right ml-4">
+                                            <p class="text-2xl font-bold text-gray-900">{{ property.price|price }}</p>
+                                            <span class="status-{{ property.status.value if property.status else 'new' }} inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border mt-2">
+                                                {{ property.status.value.replace('_', ' ').title() if property.status else 'New' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Property Features -->
+                                    {% if property.features %}
+                                    <div class="flex flex-wrap gap-2 mt-3">
+                                        {% for feature, value in property.features.items() %}
+                                            {% if value %}
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                {{ feature.replace('_', ' ').title() }}
+                                            </span>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <!-- Source and Actions -->
+                                    <div class="flex items-center justify-between mt-4">
+                                        <div class="flex items-center space-x-4 text-sm text-gray-500">
+                                            <span class="inline-flex items-center">
+                                                <span class="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
+                                                {{ property.source_site|title }}
+                                            </span>
+                                            {% if property.first_seen %}
+                                            <span>{{ property.first_seen|datetime }}</span>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <!-- Quick Actions -->
+                                        <div class="flex items-center space-x-2">
+                                            <select onchange="updatePropertyStatus({{ property.id }}, this.value)" 
+                                                    class="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                                <option value="new" {% if property.status and property.status.value == 'new' %}selected{% endif %}>Nouveau</option>
+                                                <option value="contacted" {% if property.status and property.status.value == 'contacted' %}selected{% endif %}>Contacté</option>
+                                                <option value="responded" {% if property.status and property.status.value == 'responded' %}selected{% endif %}>Répondu</option>
+                                                <option value="visit_scheduled" {% if property.status and property.status.value == 'visit_scheduled' %}selected{% endif %}>Visite programmée</option>
+                                                <option value="visited" {% if property.status and property.status.value == 'visited' %}selected{% endif %}>Visité</option>
+                                                <option value="rejected" {% if property.status and property.status.value == 'rejected' %}selected{% endif %}>Rejeté</option>
+                                            </select>
+                                            
+                                            <a href="{{ property.source_url if property.source_url else '#' }}" 
+                                               target="_blank"
+                                               class="inline-flex items-center px-3 py-1 border border-gray-300 rounded text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                                                Voir l'annonce
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if pagination and pagination.pages > 1 %}
+            <div class="px-6 py-4 border-t border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1 flex justify-between sm:hidden">
+                        {% if pagination.page > 1 %}
+                        <a href="?page={{ pagination.page - 1 }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            Précédent
+                        </a>
+                        {% endif %}
+                        {% if pagination.page < pagination.pages %}
+                        <a href="?page={{ pagination.page + 1 }}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            Suivant
+                        </a>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-sm text-gray-700">
+                                Affichage de 
+                                <span class="font-medium">{{ (pagination.page - 1) * pagination.per_page + 1 }}</span>
+                                à 
+                                <span class="font-medium">{{ pagination.page * pagination.per_page if pagination.page * pagination.per_page < pagination.total else pagination.total }}</span>
+                                sur 
+                                <span class="font-medium">{{ pagination.total }}</span>
+                                résultats
+                            </p>
+                        </div>
+                        <div>
+                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                                {% for page in range(1, pagination.pages + 1) %}
+                                    {% if page == pagination.page %}
+                                    <span class="relative inline-flex items-center px-4 py-2 border border-blue-500 bg-blue-50 text-sm font-medium text-blue-600">
+                                        {{ page }}
+                                    </span>
+                                    {% else %}
+                                    <a href="?page={{ page }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                        {{ page }}
+                                    </a>
+                                    {% endif %}
+                                {% endfor %}
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+        {% else %}
+            <!-- Empty State -->
+            <div class="text-center py-12">
+                <div class="text-6xl mb-4">🏠</div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Aucun bien trouvé</h3>
+                <p class="text-gray-500 mb-6">Essayez de modifier vos filtres ou lancez un nouveau scraping</p>
+                <button onclick="triggerManualScraping()" 
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors">
+                    <span class="mr-2">🚀</span>
+                    Lancer un scraping
+                </button>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function triggerManualScraping() {
+    const originalText = event.target.innerHTML;
+    const button = event.target;
+    
+    showLoading(button);
+    
+    makeAjaxRequest('/api/scrape', 'POST', {
+        city: 'Paris',
+        site: 'seloger'
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading(button, originalText);
+        
+        if (data.success) {
+            showFlashMessage('success', data.message);
+            setTimeout(() => window.location.reload(), 2000);
+        } else {
+            showFlashMessage('error', data.message);
+        }
+    })
+    .catch(error => {
+        hideLoading(button, originalText);
+        showFlashMessage('error', 'Erreur lors du lancement du scraping');
+        console.error('Scraping error:', error);
+    });
+}
+
+function updatePropertyStatus(propertyId, newStatus) {
+    makeAjaxRequest(`/api/property/${propertyId}/status`, 'POST', {
+        status: newStatus
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showFlashMessage('success', 'Statut mis à jour avec succès');
+        } else {
+            showFlashMessage('error', data.message);
+        }
+    })
+    .catch(error => {
+        showFlashMessage('error', 'Erreur lors de la mise à jour du statut');
+        console.error('Status update error:', error);
+    });
+}
+
+function showFlashMessage(category, message) {
+    const main = document.querySelector('main');
+    const flashDiv = document.createElement('div');
+    flashDiv.className = `flash-message mb-4 px-4 py-3 rounded-md fade-in ${category === 'error' ? 'bg-red-50 border border-red-200 text-red-700' : 'bg-green-50 border border-green-200 text-green-700'}`;
+    
+    flashDiv.innerHTML = `
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <span class="${category === 'error' ? 'text-red-500' : 'text-green-500'}">${category === 'error' ? '❌' : '✅'}</span>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm">${message}</p>
+            </div>
+        </div>
+    `;
+    
+    main.insertBefore(flashDiv, main.firstChild);
+    
+    setTimeout(() => {
+        flashDiv.style.transition = 'opacity 0.5s ease-out';
+        flashDiv.style.opacity = '0';
+        setTimeout(() => flashDiv.remove(), 500);
+    }, 5000);
+}
+</script>
+{% endblock %}
